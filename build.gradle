@@ -1,0 +1,31 @@
+plugins {
+    id 'groovy'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    jcenter() // Pode remover este, se preferir, já que o JCenter foi descontinuado
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+dependencies {
+    implementation 'org.apache.groovy:groovy:4.0.22'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3' // Biblioteca para requisições HTTP
+    implementation 'javax.mail:javax.mail-api:1.6.2'
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
