@@ -14,7 +14,50 @@ class WebCrawler {
     private final String baseUrl = 'https://www.gov.br/ans/pt-br'
     private final OkHttpClient client = new OkHttpClient()
 
-    void downloadTISSFiles() {
+    void downloadSendingErrorsTable() {
+        try {
+            // Faz a requisição HTTP para a página com tabelas relacionadas
+            def request = new Request.Builder()
+                    .url("$baseUrl/assuntos/prestadores/padrao-para-troca-de-informacao-de-saude-suplementar-2013-tiss/padrao-tiss-tabelas-relacionadas")
+                    .build()
+
+            Response response = client.newCall(request).execute()
+            if (!response.isSuccessful()) {
+                println "Falha ao buscar a página de tabelas relacionadas: ${response}"
+                return
+            }
+
+            // Parseia a resposta HTML usando Jsoup
+            Document doc = Jsoup.parse(response.body().string())
+
+            // Encontra os links na página
+            Elements links = doc.select("a[href]")
+
+            // Gera um timestamp para o nome do arquivo
+            def dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+            def now = new Date()
+            def timestamp = dateFormat.format(now)
+
+            // Procura os links que contêm 'Comunicao'
+            links.each { link ->
+                String href = link.attr('href')
+                if (href.contains('Tabelaerrosenvioparaanspadraotiss')) {
+                    // Adapta o URL para caso o href seja relativo
+                    String fileUrl = href.startsWith('http') ? href : "$baseUrl$href"
+                    println "Iniciando download do arquivo: $fileUrl"
+
+                    // Adiciona o timestamp ao nome do arquivo
+                    String destination = "./Downloads/tabela_de_erros_${timestamp}.xlsx"
+                    downloadFile(fileUrl, destination)
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace()
+        }
+    }
+
+
+    void downloadComunicationComponent() {
         try {
             // Faz a requisição HTTP para a página alvo
             def request = new Request.Builder()
@@ -41,7 +84,7 @@ class WebCrawler {
             // Procura os links que contêm 'Comunicao'
             links.each { link ->
                 String href = link.attr('href')
-                if (href.contains('Comunicao')) {
+                if (href.contains('PadroTISSComunicao')) {
                     // Adapta o URL para caso o href seja relativo
                     String fileUrl = href.startsWith('http') ? href : "$baseUrl$href"
                     println "Iniciando download do arquivo: $fileUrl"
@@ -79,7 +122,6 @@ class WebCrawler {
 
     void collectVersionHistory() {
         try {
-            // Faz a requisição HTTP para a página de histórico das versões
             def request = new Request.Builder()
                     .url("$baseUrl/assuntos/prestadores/padrao-para-troca-de-informacao-de-saude-suplementar-2013-tiss/padrao-tiss-historico-das-versoes-dos-componentes-do-padrao-tiss")
                     .build()
@@ -120,9 +162,7 @@ class WebCrawler {
                     // Escreve os dados no CSV
                     writer.write("$competencia,$publicacao,$inicioVigencia,$limiteImplantacao,$organizacional,$conteudoEstrutura,$representacaoConceitos,$segurancaPrivacidade,$comunicacao\n")
 
-                    // Verifica se a competência é "Jul/2016"
                     if (competencia == "Jan/2016") {
-                        println "Delimitador encontrado: $competencia"
                         break
                     }
                 }
