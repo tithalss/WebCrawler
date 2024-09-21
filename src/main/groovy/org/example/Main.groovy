@@ -2,5 +2,8 @@ package org.example
 
 static void main(String[] args) {
     def crawler = new WebCrawler()
-    crawler.downloadTISSFiles()
+    if (crawler) {
+        crawler.downloadTISSFiles()
+        crawler.collectVersionHistory()
+    }
 }
